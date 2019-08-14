@@ -24,3 +24,10 @@ services:
     command: celery -A atlan_task worker -l info
     depends_on:
       - web
+  flower:
+    image: mher/flower
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+    ports:
+      - "5555:5555"
+    command: /start-flower

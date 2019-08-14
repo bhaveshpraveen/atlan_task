@@ -13,4 +13,6 @@ class BaseLineUpload(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         obj = serializer.save()
-        import_to_db.delay(obj.id)
+        task = import_to_db.delay(obj.id)
+        obj.task_id = task.task_id
+        # task = import_to_db(obj.id)

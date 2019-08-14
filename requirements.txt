@@ -11,6 +11,8 @@ djangorestframework==3.10.2
 docutils==0.14
 jmespath==0.9.4
 kombu==4.6.3
+numpy==1.17.0
+pandas==0.25.0
 psycopg2-binary==2.8.3
 python-dateutil==2.8.0
 python-decouple==3.1
