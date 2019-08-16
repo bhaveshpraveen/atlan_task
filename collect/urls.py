@@ -11,9 +11,7 @@ urlpatterns = [
     path('data/', views.DataListView.as_view()),
 
     # Example 3
-    path('team/', views.TeamCreateView.as_view()),
-    path('team/<int:pk>/', views.TeamDetailView.as_view())
-
-
+    path('team/', views.TeamFileUploadListCreateView.as_view()),
+    path('team/<int:pk>/', views.TeamFileUploadDetailView.as_view())
 
 ]
