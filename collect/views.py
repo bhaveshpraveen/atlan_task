@@ -123,10 +123,11 @@ class TeamFileUploadDetailView(generics.RetrieveUpdateDestroyAPIView):
     def delete(self, request, *args, **kwargs):
         obj = self.get_object()
         # delete_teams.delay(obj.id)
-        task = self.task_result_queryset.objects.get(task_id=obj.task_id)
+        task = self.task_result_queryset.get(task_id=obj.task_id)
         if task.status in [states.RECEIVED, states.STARTED, states.PENDING, states.RETRY]:
             print('Revoking the task')
-            celery.task.control.revoke(obj.task_id)
+            celery.task.control.revoke(obj.task_id, terminate=True)
+        # Else: Its already completed
         obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 

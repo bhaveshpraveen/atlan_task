@@ -53,9 +53,9 @@ def import_to_db(self, id):
 # Todo: set retry
 @shared_task(bind=True)
 def create_teams(self, id):
-    print('In import_to_db')
+    print('In create_teams')
     obj = TeamFileUpload.objects.get(id=id)
-    print('here in import_to_db')
+    print('here in create_teams')
 
     # Download the file and import into db
     url = obj.file.url
@@ -65,16 +65,16 @@ def create_teams(self, id):
 
     for index, data in df.iterrows():
         data_dict = data.to_dict()
+        data_dict = {key.strip(): val.strip() for key, val in data_dict.items()}
         print('data_dict', data_dict)
         data_dict['file_upload'] = obj
 
         try:
             data_obj = Team.objects.create(**data_dict)
             # Just to extend the process of team creation
-            time.sleep(15)
+            time.sleep(2)
         except Exception as e:
             print('Some error occured', e)
-
 
 
 @shared_task(bind=True)
