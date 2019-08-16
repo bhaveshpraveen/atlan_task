@@ -3,5 +3,17 @@ from django.urls import path
 from collect import views
 
 urlpatterns = [
-    path('upload/', views.BaseLineUpload.as_view()),
+    # Example 1
+    path('baseline/', views.BaseLineUpload.as_view()),
+    path('baseline/<int:pk>/', views.BaseLineUploadDetailView.as_view()),
+
+
+    path('data/', views.DataListView.as_view()),
+
+    # Example 3
+    path('team/', views.TeamCreateView.as_view()),
+    path('team/<int:pk>/', views.TeamDetailView.as_view())
+
+
+
 ]

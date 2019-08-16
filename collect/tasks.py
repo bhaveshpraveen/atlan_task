@@ -24,17 +24,12 @@ def import_to_db(self, id):
     print('In import_to_db')
     obj = FileUpload.objects.get(id=id)
     print('here in import_to_db')
-    # set the task_id
-    obj.task_id = self.request.id
-    # obj.task_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
-    obj.save()
 
     # Download the file and import into db
     url = obj.file.url
 
     df = pd.read_csv(url)
     print('Downloaded the file')
-
 
     for index, data in df.iterrows():
         data_dict = data.to_dict()
@@ -46,12 +41,11 @@ def import_to_db(self, id):
         print('order placed', order_placed)
         try:
             data_obj = Data.objects.create(file_upload=obj, data=data_dict, order_placed=timezone_aware_time)
-
         except Exception as e:
             print('Some error occured', e)
 
     print('Going to sleep')
-    time.sleep(60)
+    time.sleep(100)
     print('Came outta sleep')
 
 
