@@ -9,3 +9,8 @@ class DataLimitOffsetPagination(LimitOffsetPagination):
 class FileUploadLimitOffsetPagination(LimitOffsetPagination):
     default_limit = 10
     max_limit = 30
+
+
+class TeamFileLimitOffsetPagination(LimitOffsetPagination):
+    default_limit = 10
+    max_limit = 30
