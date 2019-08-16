@@ -1,19 +1,24 @@
 import datetime
 
+import celery
+import django_celery_results
 import pytz
+from celery import states
 from django.utils.timezone import make_aware
+from django_celery_results.models import TaskResult
 
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework import permissions
 from rest_condition import Or, And
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.response import Response
 
 from atlan_task import settings
 from collect import serializers
-from collect.models import FileUpload, Data
-from collect.pagination import DataLimitOffsetPagination, FileUploadLimitOffsetPagination
-from collect.permissions import IsAllowedToUpload, IsTaskOwner, IsGet, IsDelete
-from collect.tasks import import_to_db
+from collect.models import FileUpload, Data, TeamFileUpload
+from collect.pagination import DataLimitOffsetPagination, FileUploadLimitOffsetPagination, TeamFileLimitOffsetPagination
+from collect.permissions import IsAllowedToUpload, IsTaskOwner, IsGet, IsDelete, IsPost
+from collect.tasks import import_to_db, create_teams, delete_teams
 
 
 class BaseLineUpload(generics.ListCreateAPIView):
@@ -22,9 +27,16 @@ class BaseLineUpload(generics.ListCreateAPIView):
     pagination_class = FileUploadLimitOffsetPagination
     # TODO: UPDATE PERMISSIONS
     permission_classes = [
-        And(
-            permissions.IsAuthenticated,
-            IsAllowedToUpload
+        Or(
+            And(
+                IsGet,
+                permissions.IsAuthenticated
+            ),
+            And(
+                IsPost,
+                permissions.IsAuthenticated,
+                IsAllowedToUpload
+            ),
         )
     ]
 
@@ -54,7 +66,7 @@ class BaseLineUploadDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class DataListView(generics.ListAPIView):
     serializer_class = serializers.DataSerializer
-    queryset = Data.objects.all()
+    queryset = Data.objects.all().select_related("file_upload")
     permission_classes = [permissions.IsAuthenticated, ]
     pagination_class = DataLimitOffsetPagination
     QUERY_DATE_FORMAT = '%Y-%m-%d'
@@ -72,20 +84,51 @@ class DataListView(generics.ListAPIView):
         return self.filter_by_date(qs)
 
 
-class TeamCreateView(generics.CreateAPIView):
+class TeamFileUploadListCreateView(generics.ListCreateAPIView):
+    serializer_class = serializers.TeamFileUploadSerializer
+    queryset = TeamFileUpload.objects.all()
+    pagination_class = TeamFileLimitOffsetPagination
+    # TODO: UPDATE PERMISSIONS
     permission_classes = [
+        And(
+            Or(IsGet, IsPost),
+            permissions.IsAuthenticated
+        ),
 
     ]
 
-    def post(self, request, *args, **kwargs):
-        # Task that creates 1000 teams.
-        pass
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        obj = serializer.save(user=self.request.user)
+        task = create_teams.delay(obj.id)
+        # Set the task id
+        obj.task_id = task.task_id
+        obj.save()
 
 
-class TeamDetailView(generics.RetrieveUpdateDestroyAPIView):
+class TeamFileUploadDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = serializers.TeamFileUploadSerializer
+    task_result_queryset = TaskResult.objects.all()
+    queryset = TeamFileUpload.objects.all()
+    permission_classes = [
+        And(
+            Or(IsGet, IsDelete),
+            permissions.IsAuthenticated,
+            IsTaskOwner
+        )
+    ]
+
     def delete(self, request, *args, **kwargs):
-        pass
-        
+        obj = self.get_object()
+        # delete_teams.delay(obj.id)
+        task = self.task_result_queryset.objects.get(task_id=obj.task_id)
+        if task.status in [states.RECEIVED, states.STARTED, states.PENDING, states.RETRY]:
+            print('Revoking the task')
+            celery.task.control.revoke(obj.task_id)
+        obj.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 
