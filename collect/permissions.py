@@ -11,7 +11,7 @@ class IsAllowedToUpload(permissions.BasePermission):
     file_upload_queryset = FileUpload.objects.all()
 
     def has_permission(self, request, view):
-        user = self.request.user
+        user = request.user
         uploads = self.file_upload_queryset.filter(user=user)
 
         for upload in uploads:
