@@ -40,7 +40,7 @@ You can use the refresh token to get the acess token token (`token/refresh/`) bu
 ```bash
 curl -F 'file=@/path/to/project/atlan_task/upload-files/100000-Sales-Records.csv' http://localhost:8000/collect/baseline/ -H "Authorization: Bearer {access token}"
 ```
-Replace `path/to/project` with the path where you cloned the repo
+Replace `path/to/project` with the path where you cloned the repo. Please use the files already provided(I've hardcoded the datetime format and other small details)
 Replace `{access_token}` with the access token that you received in step2
 
 The response should be something like this

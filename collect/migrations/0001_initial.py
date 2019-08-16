@@ -10,27 +10,60 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-    ]
+    dependencies = [migrations.swappable_dependency(settings.AUTH_USER_MODEL)]
 
     operations = [
         migrations.CreateModel(
-            name='FileUpload',
+            name="FileUpload",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('task_id', models.CharField(blank=True, max_length=150, verbose_name='celery_task_id')),
-                ('file', models.FileField(upload_to='')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='file_uploads', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "task_id",
+                    models.CharField(
+                        blank=True, max_length=150, verbose_name="celery_task_id"
+                    ),
+                ),
+                ("file", models.FileField(upload_to="")),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="file_uploads",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Data',
+            name="Data",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('data', django.contrib.postgres.fields.jsonb.JSONField()),
-                ('order_placed', models.DateTimeField(verbose_name='Order Placed')),
-                ('file_upload', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='data', to='collect.FileUpload')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("data", django.contrib.postgres.fields.jsonb.JSONField()),
+                ("order_placed", models.DateTimeField(verbose_name="Order Placed")),
+                (
+                    "file_upload",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="data",
+                        to="collect.FileUpload",
+                    ),
+                ),
             ],
         ),
     ]
