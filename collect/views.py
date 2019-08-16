@@ -6,10 +6,12 @@ from django.utils.timezone import make_aware
 from rest_framework import generics
 from rest_framework import permissions
 from rest_condition import Or, And
+from rest_framework.pagination import LimitOffsetPagination
 
 from atlan_task import settings
 from collect import serializers
 from collect.models import FileUpload, Data
+from collect.pagination import DataLimitOffsetPagination, FileUploadLimitOffsetPagination
 from collect.permissions import IsAllowedToUpload, IsTaskOwner, IsGet, IsDelete
 from collect.tasks import import_to_db
 
@@ -17,6 +19,7 @@ from collect.tasks import import_to_db
 class BaseLineUpload(generics.ListCreateAPIView):
     serializer_class = serializers.FileUploadSerializer
     queryset = FileUpload.objects.all()
+    pagination_class = FileUploadLimitOffsetPagination
     # TODO: UPDATE PERMISSIONS
     permission_classes = [
         And(
@@ -53,6 +56,7 @@ class DataListView(generics.ListAPIView):
     serializer_class = serializers.DataSerializer
     queryset = Data.objects.all()
     permission_classes = [permissions.IsAuthenticated, ]
+    pagination_class = DataLimitOffsetPagination
     QUERY_DATE_FORMAT = '%Y-%m-%d'
 
     def filter_by_date(self, qs):
