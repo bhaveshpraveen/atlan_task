@@ -5,13 +5,15 @@ import random
 import string
 import time
 
+import celery
 import pytz
-from celery import shared_task
+from celery import shared_task, states
 from django.conf import settings
 from django.utils import timezone
 from django.utils.timezone import make_aware
+from django_celery_results.models import TaskResult
 
-from collect.models import FileUpload, Data
+from collect.models import FileUpload, Data, TeamFileUpload, Team
 
 import pandas as pd
 
@@ -44,9 +46,48 @@ def import_to_db(self, id):
         except Exception as e:
             print('Some error occured', e)
 
-    print('Going to sleep')
-    time.sleep(100)
-    print('Came outta sleep')
+    # print('Going to sleep')
+    # time.sleep(100)
+    # print('Came outta sleep')
+
+# Todo: set retry
+@shared_task(bind=True)
+def create_teams(self, id):
+    print('In import_to_db')
+    obj = TeamFileUpload.objects.get(id=id)
+    print('here in import_to_db')
+
+    # Download the file and import into db
+    url = obj.file.url
+
+    df = pd.read_csv(url)
+    print('Downloaded the file')
+
+    for index, data in df.iterrows():
+        data_dict = data.to_dict()
+        print('data_dict', data_dict)
+        data_dict['file_upload'] = obj
+
+        try:
+            data_obj = Team.objects.create(**data_dict)
+            # Just to extend the process of team creation
+            time.sleep(15)
+        except Exception as e:
+            print('Some error occured', e)
+
+
+
+@shared_task(bind=True)
+def delete_teams(self, id):
+    obj = TeamFileUpload.objects.get(id)
+    task = TaskResult.objects.get(task_id=obj.task_id)
+    if task.status in [states.RECEIVED, states.STARTED, states.PENDING, states.RETRY]:
+        print('Revoking the task')
+        celery.task.control.revoke(obj.task_id)
+    obj.delete()
+
+
+
 
 
 
