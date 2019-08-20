@@ -2,7 +2,7 @@ How to run:
 1. Clone the repo
 2. Make sure you have docker and docker-compose
 3. Navigate to project directory (where the docker-compose file is present)
-4. Add the `.env` file sent through the mail in the root of the project directory.
+4. Add the `.env` file sent through the mail to the root of the project directory.
 ```bash
 docker-compose up
 ```
