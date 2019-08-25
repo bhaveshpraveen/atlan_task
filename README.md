@@ -51,7 +51,7 @@ The response should be something like this
 ```bash
 {"id":1,"file":"https://atlan-task-assets.s3.amazonaws.com/file/100000-Sales-Records.csv"}%
 ```
-The uploaded file has not been uploaded to Amazon s3.
+The uploaded file has now been uploaded to Amazon s3.
 
 Now if you check the console, you can see the data being imported into the db by the background celery worker.
 
